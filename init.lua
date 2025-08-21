@@ -301,6 +301,16 @@ require("lazy").setup({
 	-- with the first argument being the link and the following
 	-- keys can be used to configure plugin behavior/loading/etc.
 	--
+	--
+	--+  -- LazyGit integration
+	{
+		"kdheepak/lazygit.nvim",
+		cmd = "LazyGit",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		keys = {
+			{ "<leader>gg", "<cmd>LazyGit<CR>", desc = "Open LazyGit" },
+		},
+	},
 	-- Use `opts = {}` to automatically pass options to a plugin's `setup()` function, forcing the plugin to be loaded.
 	--
 
@@ -340,8 +350,8 @@ require("lazy").setup({
 		dependencies = { "nvim-lua/plenary.nvim" },
 		lazy = false,
 		config = function()
-		local mark = require("harpoon.mark")
-		local ui = require("harpoon.ui")
+			local mark = require("harpoon.mark")
+			local ui = require("harpoon.ui")
 
 			-- Keymaps for Harpoon
 			vim.keymap.set("n", "<leader>a", mark.add_file, { desc = "Harpoon: Add file to list" })
@@ -754,6 +764,10 @@ require("lazy").setup({
 
 			-- LSP servers and clients are able to communicate to each other what features they support.
 			--  By default, Neovim doesn't support everything that is in the LSP specification.
+			--  When you add blink
+
+			-- LSP servers and clients are able to communicate to each other what features they support.
+			--  By default, Neovim doesn't support everything that is in the LSP specification.
 			--  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
 			--  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
 			local capabilities = require("blink.cmp").get_lsp_capabilities()
@@ -1150,7 +1164,6 @@ require("lazy").setup({
 	-- Or use telescope!
 	-- In normal mode type `<space>sh` then write `lazy.nvim-plugin`
 	-- you can continue same window with `<space>sr` which resumes last telescope search
- 
 
 	ui = {
 		-- If you are using a Nerd Font: set icons to an empty table which will use the

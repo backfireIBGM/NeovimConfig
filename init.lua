@@ -825,21 +825,33 @@ require("lazy").setup({
 			--
 			-- You can add other tools here that you want Mason to install
 			-- for you, so that they are available from within Neovim.
-			local ensure_installed = vim.tbl_keys(servers or {})
-			vim.list_extend(ensure_installed, { "stylua", "omnisharp" }) -- HERE
-			require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+	-- Ensure the servers and tools above are installed
+local ensure_installed = vim.tbl_keys(servers or {})
 
-			require("mason-lspconfig").setup({
-				ensure_installed = {},
-				automatic_installation = false,
-				handlers = {
-					function(server_name)
-						local server = servers[server_name] or {}
-						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
-					end,
-				},
-			})
+vim.list_extend(ensure_installed, {
+	"stylua",
+	"omnisharp",
+	-- "gofumpt", -- optional Go formatter
+})
+
+require("mason-tool-installer").setup({
+	ensure_installed = ensure_installed,
+})
+
+require("mason-lspconfig").setup({
+	ensure_installed = {},
+	automatic_installation = false,
+	handlers = {
+		function(server_name)
+			local server = servers[server_name] or {}
+
+			server.capabilities =
+				vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+
+			require("lspconfig")[server_name].setup(server)
+		end,
+	},
+})
 		end,
 	},
 
@@ -1095,13 +1107,12 @@ require("lazy").setup({
 			--  Check out: https://github.com/echasnovski/mini.nvim
 		end,
 	},
-	{ -- Highlight, edit, and navigate code
+	{
 		"nvim-treesitter/nvim-treesitter",
+		lazy = false,
 		build = ":TSUpdate",
-		main = "nvim-treesitter.configs", -- Sets main module to use for opts
-		-- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-		opts = {
-			ensure_installed = {
+		config = function()
+			local languages = {
 				"bash",
 				"c",
 				"diff",
@@ -1113,26 +1124,35 @@ require("lazy").setup({
 				"query",
 				"vim",
 				"vimdoc",
-			},
-			-- Autoinstall languages that are not installed
-			auto_install = true,
-			highlight = {
-				enable = true,
-				-- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-				--  If you are experiencing weird indenting issues, add the language to
-				--  the list of additional_vim_regex_highlighting and disabled languages for indent.
-				additional_vim_regex_highlighting = { "ruby" },
-			},
-			indent = { enable = true, disable = { "ruby" } },
-		},
-		-- There are additional nvim-treesitter modules that you can use to interact
-		-- with nvim-treesitter. You should go explore a few and see what interests you:
-		--
-		--    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-		--    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-		--    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-	},
+			}
 
+			require("nvim-treesitter").setup()
+			require("nvim-treesitter").install(languages)
+
+			-- Only enable treesitter for real file buffers. A catch-all autocmd
+			-- breaks Lazy.nvim, which uses internal filetypes like "lazy" and
+			-- "lazybackup" that have no installed parser.
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = {
+					"bash",
+					"sh",
+					"c",
+					"diff",
+					"html",
+					"lua",
+					"markdown",
+					"query",
+					"vim",
+					"help",
+				},
+				callback = function()
+					if pcall(vim.treesitter.start) then
+						vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					end
+				end,
+			})
+		end,
+	},
 	-- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
 	-- init.lua. If you want these files, they are in the repository, so you can just download them and
 	-- place them in the correct locations.
